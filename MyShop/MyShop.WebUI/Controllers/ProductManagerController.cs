@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
@@ -39,7 +40,7 @@ namespace MyShop.WebUI.Controllers
         }
 
         [HttpPost]
-        public ActionResult Create(Product product)
+        public ActionResult Create(Product product, HttpPostedFileBase file)
         {   
             //Check information for the product passes validation parameters, return to create page if not.
             if (!ModelState.IsValid)
@@ -47,7 +48,14 @@ namespace MyShop.WebUI.Controllers
                 return View(product);
             }
             else
-            {   //Insert newly created product to the collection
+            {  //Check that image file exists and save it
+                if(file != null)
+                {
+                    //Give image file a unique name using the product Id
+                    product.Image = product.Id + Path.GetExtension(file.FileName);
+                    file.SaveAs(Server.MapPath("//Content//ProductImages") + product.Image);
+                }
+                //Insert newly created product to the collection
                 context.Insert(product);
                 context.Commit();
 
@@ -73,7 +81,7 @@ namespace MyShop.WebUI.Controllers
         }
 
         [HttpPost]
-        public ActionResult Edit(Product product, string Id)
+        public ActionResult Edit(Product product, string Id, HttpPostedFileBase file)
         {
             Product productToEdit = context.Find(Id);
             if (product == null)
@@ -88,9 +96,16 @@ namespace MyShop.WebUI.Controllers
                 }
                 else
                 {
+                    //Check that image file exists and save it
+                    if (file != null)
+                    {
+                        //Give image file a unique name using the product Id
+                        productToEdit.Image = product.Id + Path.GetExtension(file.FileName);
+                        file.SaveAs(Server.MapPath("//Content//ProductImages") + productToEdit.Image);
+                    }
+
                     productToEdit.Category = product.Category;
                     productToEdit.Description = product.Description;
-                    productToEdit.Image = product.Image;
                     productToEdit.Name = product.Name;
                     productToEdit.Price = product.Price;
 
